@@ -11,6 +11,7 @@ class Product(models.Model):
     product_name = models.CharField(max_length=200)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.IntegerField()
+    expirydate=models.DateField(null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -41,14 +42,9 @@ class Billing(models.Model):
     product_name = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    purchasetime=models.DateTimeField(null=True)
 
     def __str__(self):
         return str(self.id)
 
-class User(models.Model):
-    username = models.CharField(max_length=150, unique=True)
-    password = models.CharField(max_length=128)
-
-    def __str__(self):
-        return self.username
 

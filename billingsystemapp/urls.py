@@ -5,7 +5,7 @@ urlpatterns = [
     path('adduser/', views.adduser, name='adduser'),
     path('addproduct/', views.addproduct, name='addproduct'),
     path('addcustomer/', views.addcustomer, name='addcustomer'),
-    path('', views.billing, name='billing'),
+    path('billing/', views.billing, name='billing'),
     path('product/', views.product_list, name='product'),
     path('product/search/', views.product_search, name='product_search'),
     path('product/<int:product_id>/update/', views.product_update, name='product_update'),
@@ -15,4 +15,8 @@ urlpatterns = [
     path('customers/', views.customer_list, name='customers'),
     path('categories/', views.category_list, name='category_list'),
     path('category/<int:category_id>/delete/', views.category_delete, name='category_delete'),
+    path('', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('user_list/', views.user_list, name='user_list'),
+    path('user_list/<str:user_name>/delete/', views.user_delete, name='user_delete'),
 ]

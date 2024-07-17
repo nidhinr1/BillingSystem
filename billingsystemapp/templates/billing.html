@@ -42,10 +42,20 @@
                             <a class="nav-link" href="{% url 'category_list' %}">Category</a>
                         </li>
                     </ul>
+                    <ul class="navbar-nav">
+                        {% if user.is_authenticated %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'login' %}">Login</a>
+                            </li>
+                        {% endif %}
+                    </ul>
                 </div>
             </div>
         </nav>
-    
     </div>
     <br>
     <br>
@@ -100,7 +110,6 @@
     </table>
 
     <h3>Total Price: Rs {{ total_price }}</h3>
-    
     <form method="post">
         {% csrf_token %}
         <button type="submit" name="submit_bill" class="btn btn-success">Submit Bill</button>

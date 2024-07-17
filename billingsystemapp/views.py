@@ -2,9 +2,11 @@ from django.shortcuts import render,get_object_or_404,redirect
 from .models import *
 from django.contrib.auth.models import User,auth
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login,logout
 from django.http import JsonResponse
 from .encoders import DecimalEncoder
 import datetime
+from django.contrib import messages
 
 
 def addcategory(request):
@@ -35,9 +37,10 @@ def addproduct(request):
         name=request.POST['pdtname']
         price=request.POST['pdtprice']
         stock=request.POST['pdtstock']
-        category_name=request.POST['pdtcategory']    
+        category_name=request.POST['pdtcategory'] 
+        expiry = request.POST['pdtexp']  
         category = get_object_or_404(Category, name=category_name)
-        q=Product(product_name=name,price=price,quantity=stock,category=category)
+        q=Product(product_name=name,price=price,quantity=stock,category=category,expirydate=expiry)
         q.save()
         return render(request,'addproduct.html',{'msg':'Product submitted','type':types})
     else:
@@ -162,3 +165,29 @@ def category_delete(request, category_id):
         category.delete()
         return redirect('category_list')
     return render(request, 'category_delete.html', {'category': category})
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('billing')  # Replace 'home' with your desired redirect URL
+        else:
+            messages.error(request, 'Invalid username or password')
+    return render(request, 'login.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')  
+
+def user_list(request):
+    users = User.objects.all()
+    return render(request, 'user_list.html', {'users': users})
+
+def user_delete(request, user_name):
+    user = get_object_or_404(User, username=user_name)
+    user.delete()
+    messages.success(request, f'User {user_name} has been deleted.')
+    return redirect('user_list')
