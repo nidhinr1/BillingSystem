@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% load custom_filters %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Billing</title>
+</head>
+<body>
+    <div class="nav">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="width: 100%;">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="{% url 'billing' %}">Billingsystem</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
+                    <ul class="navbar-nav" style="padding-left: 350px;">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'adduser' %}">Add User</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'addcustomer' %}">Add Customer</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'addcategory' %}">Add Category</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'addproduct' %}">Add Product</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'billing' %}">Billing</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'product' %}">Products</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'customers' %}">Customers</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'category_list' %}">Category</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    
+    </div>
+    <br>
+    <br>
+    <div class="container">
+    <h1>Select product</h1>
+    <form method="post" class="form-inline mb-3">
+        {% csrf_token %}
+        <div class="form-group mx-sm-3 mb-2">
+            <label for="product_id" class="sr-only">Product</label>
+            <select name="product_id" class="form-control" required>
+                <option value="">Select Product</option>
+                {% for product in products %}
+                <option value="{{ product.product_id }}">{{ product.product_name }} - Rs{{ product.price }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group mx-sm-3 mb-2">
+            <label for="quantity" class="sr-only">Quantity</label>
+            <input type="number" name="quantity" class="form-control" placeholder="Quantity" min="1" required>
+        </div>
+        <button type="submit" name="add_product" class="btn btn-primary mb-2">Add Product</button>
+    </form>
+
+    <h2>Cart</h2>
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>Product Name</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Total</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for product_id, item in cart.items %}
+        <tr>
+            <td>{{ item.name }}</td>
+            <td>Rs{{ item.price }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>Rs{{ item.price|multiply:item.quantity }}</td>
+            <td>
+                <form method="post" class="form-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ product_id }}">
+                    <button type="submit" name="remove_product" class="btn btn-danger btn-sm">Remove</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Total Price: Rs {{ total_price }}</h3>
+    
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" name="submit_bill" class="btn btn-success">Submit Bill</button>
+    </form>
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
