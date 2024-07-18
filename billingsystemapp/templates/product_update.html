@@ -18,6 +18,10 @@
                 <input type="text" class="form-control" id="product_name" name="product_name" value="{{ product.product_name }}" required>
             </div>
             <div class="form-group">
+                <label for="brand">Brand:</label>
+                <input type="text" class="form-control" id="brand" name="brand" value="{{ product.brand }}" required>
+            </div>
+            <div class="form-group">
                 <label for="price">Price</label>
                 <input type="text" class="form-control" id="price" name="price" value="{{ product.price }}" required>
             </div>
@@ -32,6 +36,10 @@
                         <option value="{{ category.pk }}" {% if category.pk == product.category.pk %} selected {% endif %}>{{ category.name }}</option>
                     {% endfor %}
                 </select>
+            </div>
+            <div class="form-group">
+                <label for="pdtmanu">Product Manufacturing:</label>
+                <input type="date" class="form-control" id="pdtmanu" name="pdtmanu" value="{{ product.manufacturingdate }}" required>
             </div>
             <button type="submit" class="btn btn-primary">Update Product</button>
             <a class="btn btn-secondary" href="{% url 'product' %}">Cancel</a>

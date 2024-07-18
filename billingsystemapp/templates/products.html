@@ -49,8 +49,8 @@
         <h1 class="mt-4 mb-4">Product List</h1>
 
         <!-- Search Form -->
-        <form class="form-inline mb-4">
-            <input class="form-control mr-sm-2" type="search" placeholder="Search by Product Name" aria-label="Search" name="q">
+        <form class="form-inline mb-4" method="get" action="{% url 'search_products' %}">
+            <input class="form-control mr-sm-2" type="search" placeholder="Search by Product Name" aria-label="Search" name="q" value="{{ query }}">
             <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
         </form>
 
@@ -59,9 +59,11 @@
             <thead>
                 <tr>
                     <th>Product Name</th>
+                    <th>Brand</th>
                     <th>Price</th>
                     <th>Quantity</th>
                     <th>Category</th>
+                    <th>Manufacturing Date</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -69,13 +71,19 @@
                 {% for product in products %}
                 <tr>
                     <td>{{ product.product_name }}</td>
+                    <td>{{ product.brand }}</td>
                     <td>{{ product.price }}</td>
                     <td>{{ product.quantity }}</td>
                     <td>{{ product.category.name }}</td>
+                    <td>{{ product.manufacturingdate }}</td>
                     <td>
                         <a class="btn btn-sm btn-warning" href="{% url 'product_update' product.product_id %}">Update</a>
                         <a class="btn btn-sm btn-danger" href="{% url 'product_delete' product.product_id %}">Delete</a>
                     </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">No products found.</td>
                 </tr>
                 {% endfor %}
             </tbody>

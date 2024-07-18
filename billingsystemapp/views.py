@@ -35,12 +35,13 @@ def addproduct(request):
     types=Category.objects.all().values
     if request.method =='POST':
         name=request.POST['pdtname']
+        brand=request.POST['brand']
         price=request.POST['pdtprice']
         stock=request.POST['pdtstock']
         category_name=request.POST['pdtcategory'] 
-        expiry = request.POST['pdtexp']  
+        manufacturing = request.POST['pdtmanu']  
         category = get_object_or_404(Category, name=category_name)
-        q=Product(product_name=name,price=price,quantity=stock,category=category,expirydate=expiry)
+        q=Product(product_name=name,brand=brand,price=price,quantity=stock,category=category,manufacturingdate=manufacturing)
         q.save()
         return render(request,'addproduct.html',{'msg':'Product submitted','type':types})
     else:
@@ -119,8 +120,10 @@ def product_update(request, product_id):
     if request.method == 'POST':
         product.product_name = request.POST.get('product_name')
         product.price = request.POST.get('price')
+        product.brand=request.POST['brand']
         product.quantity = request.POST.get('quantity')
         category_id = request.POST.get('category')
+        product.manufacturingdate = request.POST['pdtmanu'] 
         product.category = Category.objects.get(pk=category_id)
         product.save()
         return redirect('product')
@@ -191,3 +194,12 @@ def user_delete(request, user_name):
     user.delete()
     messages.success(request, f'User {user_name} has been deleted.')
     return redirect('user_list')
+
+def search_products(request):
+    query = request.GET.get('q', '')
+    if query:
+        products = Product.objects.filter(product_name__icontains=query)
+    else:
+        products = Product.objects.all()
+    
+    return render(request, 'products.html', {'products': products, 'query': query})
