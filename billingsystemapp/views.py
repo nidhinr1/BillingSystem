@@ -124,23 +124,26 @@ def billing(request):
         if 'add_product' in request.POST:
             product_id = request.POST.get('product_id')
             quantity = request.POST.get('quantity')
+            check=Product.objects.get(product_id=product_id)
+            if check.quantity==0:
+                return render(request,'billing.html',{'msg':'Out of stock'})
+            else:
+                if product_id and quantity:
+                    try:
+                        quantity = int(quantity)
+                        product = get_object_or_404(Product, pk=product_id)
 
-            if product_id and quantity:
-                try:
-                    quantity = int(quantity)
-                    product = get_object_or_404(Product, pk=product_id)
-
-                    if product_id in cart:
-                        cart[product_id]['quantity'] += quantity
-                    else:
-                        cart[product_id] = {
-                            'name': product.product_name,
-                            'price': float(product.price),
-                            'quantity': quantity
-                        }
-                    request.session['cart'] = cart
-                except (ValueError, Product.DoesNotExist):
-                    pass
+                        if product_id in cart:
+                            cart[product_id]['quantity'] += quantity
+                        else:
+                            cart[product_id] = {
+                                'name': product.product_name,
+                                'price': float(product.price),
+                                'quantity': quantity
+                            }
+                        request.session['cart'] = cart
+                    except (ValueError, Product.DoesNotExist):
+                        pass
 
         if 'remove_product' in request.POST:
             product_id = request.POST.get('product_id')
