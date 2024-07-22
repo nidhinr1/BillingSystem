@@ -13,7 +13,7 @@ from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle,Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
-import io
+import io,uuid
 
 def addcategory(request):
     if request.method =='POST':
@@ -68,95 +68,16 @@ def addcustomer(request):
     else:
         return render(request, 'addcustomers.html')
 
-import uuid
-
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse
-from django.db.models import Q
-from .models import Product, Billing
-import datetime
-import uuid
-
-def billing(request):
-    products = Product.objects.all()
-    search_query = request.GET.get('search', '')
-
-    if search_query:
-        products = products.filter(Q(product_name__icontains=search_query))
-
-    if request.method == 'POST':
-        if 'add_product' in request.POST:
-            product_id = request.POST.get('product_id')
-            quantity = request.POST.get('quantity')
-
-            if product_id and quantity:
-                try:
-                    quantity = int(quantity)
-                    product = get_object_or_404(Product, pk=product_id)
-
-                    cart = request.session.get('cart', {})
-                    if product_id in cart:
-                        cart[product_id]['quantity'] += quantity
-                    else:
-                        cart[product_id] = {
-                            'name': product.product_name, 
-                            'price': float(product.price), 
-                            'quantity': quantity
-                        }
-                    request.session['cart'] = cart
-                except (ValueError, Product.DoesNotExist):
-                    pass
-
-        if 'remove_product' in request.POST:
-            product_id = request.POST.get('product_id')
-            cart = request.session.get('cart', {})
-            if product_id in cart:
-                del cart[product_id]
-            request.session['cart'] = cart
-
-        if 'submit_bill' in request.POST:
-            cart = request.session.get('cart', {})
-            if cart:
-                sale_number = uuid.uuid4()  # Generate a unique UUID
-                purchasetime = datetime.datetime.now()
-                for product_id, item in cart.items():
-                    product = get_object_or_404(Product, pk=product_id)
-                    Billing.objects.create(
-                        sale_number=sale_number,
-                        product_id=product,  # Ensure this matches your model definition
-                        quantity=item['quantity'],
-                        price=item['price'],
-                        purchasetime=purchasetime
-                    )
-                    product.quantity -= item['quantity']
-                    product.save()
-                response = generate_pdf_bill(sale_number, cart, purchasetime)
-                response['Content-Disposition'] = f'attachment; filename="bill_{sale_number}.pdf"'
-                request.session['cart'] = {}  # Clear cart
-                return response
-
-    cart = request.session.get('cart', {})
-    total_price = sum(item['price'] * item['quantity'] for item in cart.values())
-
-    return render(request, 'billing.html', {
-        'products': products, 
-        'cart': cart, 
-        'total_price': total_price, 
-        'search_query': search_query
-    })
-
 def generate_pdf_bill(sale_number, cart, purchasetime):
     response = HttpResponse(content_type='application/pdf')
-    
+
     doc = SimpleDocTemplate(response, pagesize=letter)
     elements = []
 
     styles = getSampleStyleSheet()
     title = Paragraph("Purchase Bill", styles['Title'])
-    #subtitle = Paragraph(f"Bill Number: {sale_number}", styles['Heading2'])
     
     elements.append(title)
-    #elements.append(subtitle)
     elements.append(Paragraph(f"Purchase Time: {purchasetime.strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal']))
     elements.append(Paragraph("<br/>", styles['Normal']))
 
@@ -166,7 +87,7 @@ def generate_pdf_bill(sale_number, cart, purchasetime):
 
     for item in cart.values():
         data.append([item['name'], item['quantity'], purchasetime.strftime('%Y-%m-%d %H:%M:%S'), f"Rs {item['price']}", f"Rs {item['price'] * item['quantity']}"])
-    
+
     total_price = sum(item['price'] * item['quantity'] for item in cart.values())
     data.append([])
     data.append(["", "", "", "Final Amount:", f"Rs {total_price}"])
@@ -174,15 +95,102 @@ def generate_pdf_bill(sale_number, cart, purchasetime):
     table = Table(data, colWidths=[2.0 * inch, 1.0 * inch, 2.5 * inch, 1.0 * inch, 1.5 * inch])
 
     table.setStyle(TableStyle([
-    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-    ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
     ]))
     elements.append(table)
     doc.build(elements)
-    
+
     return response
+
+
+def billing(request):
+    products = Product.objects.all()
+    search_query = request.GET.get('search', '')
+
+    if search_query:
+        products = products.filter(Q(product_name__icontains=search_query))
+
+    if request.method == 'POST':
+        cart = request.session.get('cart', {})
+        sale_number = request.session.get('sale_number', None)
+
+        if sale_number is None:
+            sale_number = str(uuid.uuid4())
+            request.session['sale_number'] = sale_number
+
+        if 'add_product' in request.POST:
+            product_id = request.POST.get('product_id')
+            quantity = request.POST.get('quantity')
+
+            if product_id and quantity:
+                try:
+                    quantity = int(quantity)
+                    product = get_object_or_404(Product, pk=product_id)
+
+                    if product_id in cart:
+                        cart[product_id]['quantity'] += quantity
+                    else:
+                        cart[product_id] = {
+                            'name': product.product_name,
+                            'price': float(product.price),
+                            'quantity': quantity
+                        }
+                    request.session['cart'] = cart
+                except (ValueError, Product.DoesNotExist):
+                    pass
+
+        if 'remove_product' in request.POST:
+            product_id = request.POST.get('product_id')
+            if product_id in cart:
+                del cart[product_id]
+            request.session['cart'] = cart
+
+        if 'submit_bill' in request.POST:
+            if cart:
+                purchasetime = datetime.datetime.now()
+
+                try:
+                    for product_id, item in cart.items():
+                        product = get_object_or_404(Product, pk=product_id)
+                        Billing.objects.create(
+                            sale_number=sale_number,
+                            product_id=product,
+                            quantity=item['quantity'],
+                            price=item['price'],
+                            purchasetime=purchasetime
+                        )
+                        product.quantity -= item['quantity']
+                        product.save()
+
+                    response = generate_pdf_bill(sale_number, cart, purchasetime)
+                    response['Content-Disposition'] = f'attachment; filename="bill_{sale_number}.pdf"'
+                    request.session['cart'] = {}  # Clear cart
+                    request.session['sale_number'] = None  # Clear sale_number after transaction
+                    return response
+
+                except IntegrityError:
+                    # Handle the error when trying to add the same product twice in the same bill
+                    error_message = "You cannot add the same product twice in the same bill."
+                    return render(request, 'billing.html', {
+                        'products': products,
+                        'cart': cart,
+                        'total_price': sum(item['price'] * item['quantity'] for item in cart.values()),
+                        'search_query': search_query,
+                        'error_message': error_message
+                    })
+
+    cart = request.session.get('cart', {})
+    total_price = sum(item['price'] * item['quantity'] for item in cart.values())
+
+    return render(request, 'billing.html', {
+        'products': products,
+        'cart': cart,
+        'total_price': total_price,
+        'search_query': search_query
+    })
 def product_list(request):
     products = Product.objects.all()
     return render(request, 'products.html', {'products': products})
