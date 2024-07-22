@@ -1,7 +1,7 @@
 from django.shortcuts import render,get_object_or_404,redirect
 from .models import *
 from django.contrib.auth.models import User,auth
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib.auth import authenticate, login,logout
 from django.http import JsonResponse,HttpResponse,FileResponse
 import datetime
@@ -70,6 +70,7 @@ def addcustomer(request):
 
 def generate_pdf_bill(sale_number, cart, purchasetime):
     response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="bill_{sale_number}.pdf"'
 
     doc = SimpleDocTemplate(response, pagesize=letter)
     elements = []
@@ -105,7 +106,6 @@ def generate_pdf_bill(sale_number, cart, purchasetime):
 
     return response
 
-
 def billing(request):
     products = Product.objects.all()
     search_query = request.GET.get('search', '')
@@ -124,12 +124,18 @@ def billing(request):
         if 'add_product' in request.POST:
             product_id = request.POST.get('product_id')
             quantity = request.POST.get('quantity')
-
-            if product_id and quantity:
+            product = get_object_or_404(Product, pk=product_id)
+            if product.quantity == 0:
+                return render(request, 'billing.html', {
+                    'msg': 'Out of stock',
+                    'products': products,
+                    'cart': cart,
+                    'total_price': sum(item['price'] * item['quantity'] for item in cart.values()),
+                    'search_query': search_query
+                })
+            else:
                 try:
                     quantity = int(quantity)
-                    product = get_object_or_404(Product, pk=product_id)
-
                     if product_id in cart:
                         cart[product_id]['quantity'] += quantity
                     else:
@@ -151,7 +157,6 @@ def billing(request):
         if 'submit_bill' in request.POST:
             if cart:
                 purchasetime = datetime.datetime.now()
-
                 try:
                     for product_id, item in cart.items():
                         product = get_object_or_404(Product, pk=product_id)
@@ -166,13 +171,10 @@ def billing(request):
                         product.save()
 
                     response = generate_pdf_bill(sale_number, cart, purchasetime)
-                    response['Content-Disposition'] = f'attachment; filename="bill_{sale_number}.pdf"'
                     request.session['cart'] = {}  # Clear cart
                     request.session['sale_number'] = None  # Clear sale_number after transaction
                     return response
-
                 except IntegrityError:
-                    # Handle the error when trying to add the same product twice in the same bill
                     error_message = "You cannot add the same product twice in the same bill."
                     return render(request, 'billing.html', {
                         'products': products,
@@ -191,6 +193,7 @@ def billing(request):
         'total_price': total_price,
         'search_query': search_query
     })
+
 def product_list(request):
     products = Product.objects.all()
     return render(request, 'products.html', {'products': products})
@@ -274,14 +277,17 @@ def logout_view(request):
     return redirect('login')  
 
 def user_list(request):
-    users = User.objects.all()
+    users = User.objects.exclude(is_superuser=True)
     return render(request, 'user_list.html', {'users': users})
 
+@user_passes_test(lambda u: u.is_superuser)
 def user_delete(request, user_name):
     user = get_object_or_404(User, username=user_name)
-    user.delete()
-    messages.success(request, f'User {user_name} has been deleted.')
-    return redirect('user_list')
+    if request.method == "POST":
+        user.delete()
+        messages.success(request, f'User {user_name} has been deleted.')
+        return redirect('user_list')
+    return render(request, 'user_delete.html', {'user': user})
 
 def search_products(request):
     query = request.GET.get('q', '')

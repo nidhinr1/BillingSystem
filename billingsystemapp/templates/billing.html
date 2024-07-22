@@ -17,17 +17,25 @@
                 </button>
                 <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
                     <ul class="navbar-nav" style="padding-left: 350px;">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'adduser' %}">Add User</a>
-                        </li>
+                        {% if user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'adduser' %}">Add User</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'addcategory' %}">Add Category</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'addproduct' %}">Add Product</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'user_list' %}">Users</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'category_list' %}">Category</a>
+                            </li>
+                        {% endif %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'addcustomer' %}">Add Customer</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'addcategory' %}">Add Category</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'addproduct' %}">Add Product</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'billing' %}">Billing</a>
@@ -37,9 +45,6 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'customers' %}">Customers</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'category_list' %}">Category</a>
                         </li>
                     </ul>
                     <ul class="navbar-nav">
@@ -86,6 +91,8 @@
             </div>
             <button type="submit" name="add_product" class="btn btn-primary mb-2">Add Product</button>
         </form>
+        <br>
+            <p style="color: red;">{{msg}}</p>
 
         <h2>Cart</h2>
         <table class="table table-bordered">

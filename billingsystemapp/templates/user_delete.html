@@ -1,4 +1,3 @@
-<!-- category_delete.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +9,7 @@
 <body>
     <div class="container">
         <h1>Delete User</h1>
-        <p>Are you sure you want to delete "{{ User.name }}"?</p>
+        <p>Are you sure you want to delete "{{ user.username }}"?</p>
         <form method="post">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger">Delete</button>
