@@ -11,7 +11,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle,Paragraph
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle,Paragraph,Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 import io,uuid
 
@@ -79,9 +79,10 @@ def generate_pdf_bill(sale_number, cart, purchasetime):
     title = Paragraph("Purchase Bill", styles['Title'])
     
     elements.append(title)
+    elements.append(Spacer(1,12))
     elements.append(Paragraph(f"Purchase Time: {purchasetime.strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal']))
     elements.append(Paragraph("<br/>", styles['Normal']))
-
+    elements.append(Spacer(1,12))
     data = [
         ["Product Name", "Quantity", "Purchase Date", "Price", "Total Price"]
     ]
@@ -93,7 +94,7 @@ def generate_pdf_bill(sale_number, cart, purchasetime):
     data.append([])
     data.append(["", "", "", "Final Amount:", f"Rs {total_price}"])
 
-    table = Table(data, colWidths=[2.0 * inch, 1.0 * inch, 2.5 * inch, 1.0 * inch, 1.5 * inch])
+    table = Table(data, colWidths=[2.5 * inch, 1.0 * inch, 2.0 * inch, 1.0 * inch, 1.5 * inch])
 
     table.setStyle(TableStyle([
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
