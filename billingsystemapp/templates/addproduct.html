@@ -10,23 +10,31 @@
     <div class="nav">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="width: 100%;">
             <div class="container-fluid">
-                <a class="navbar-brand" href="{% url 'billing' %}">Billingsystem</a>
+                <a id="logo" class="navbar-brand" href="{% url 'billing' %}">Billingsystem</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
                     <ul class="navbar-nav" style="padding-left: 350px;">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'adduser' %}">Add User</a>
-                        </li>
+                        {% if user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'adduser' %}">Add User</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'addcategory' %}">Add Category</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'addproduct' %}">Add Product</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'user_list' %}">Users</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'category_list' %}">Category</a>
+                            </li>
+                        {% endif %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'addcustomer' %}">Add Customer</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'addcategory' %}">Add Category</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'addproduct' %}">Add Product</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'billing' %}">Billing</a>
@@ -36,9 +44,6 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'customers' %}">Customers</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'category_list' %}">Category</a>
                         </li>
                     </ul>
                     <ul class="navbar-nav">
