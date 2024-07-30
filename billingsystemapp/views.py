@@ -126,28 +126,43 @@ def billing(request):
             product_id = request.POST.get('product_id')
             quantity = request.POST.get('quantity')
             product = get_object_or_404(Product, pk=product_id)
+            
             if product.quantity == 0:
                 return render(request, 'billing.html', {
-                    'msg': 'Out of stock',
+                    'msg': f'{product.product_name} is out of stock.',
                     'products': products,
                     'cart': cart,
                     'total_price': sum(item['price'] * item['quantity'] for item in cart.values()),
                     'search_query': search_query
                 })
-            else:
-                try:
-                    quantity = int(quantity)
-                    if product_id in cart:
-                        cart[product_id]['quantity'] += quantity
-                    else:
-                        cart[product_id] = {
-                            'name': product.product_name,
-                            'price': float(product.price),
-                            'quantity': quantity
-                        }
-                    request.session['cart'] = cart
-                except (ValueError, Product.DoesNotExist):
-                    pass
+            
+            try:
+                quantity = int(quantity)
+                if product_id in cart:
+                    new_quantity = cart[product_id]['quantity'] + quantity
+                else:
+                    new_quantity = quantity
+                
+                if new_quantity > product.quantity:
+                    return render(request, 'billing.html', {
+                        'msg': f'Quantity requested for {product.product_name} exceeds stock available ({product.quantity}).',
+                        'products': products,
+                        'cart': cart,
+                        'total_price': sum(item['price'] * item['quantity'] for item in cart.values()),
+                        'search_query': search_query
+                    })
+
+                if product_id in cart:
+                    cart[product_id]['quantity'] += quantity
+                else:
+                    cart[product_id] = {
+                        'name': product.product_name,
+                        'price': float(product.price),
+                        'quantity': quantity
+                    }
+                request.session['cart'] = cart
+            except (ValueError, Product.DoesNotExist):
+                pass
 
         if 'remove_product' in request.POST:
             product_id = request.POST.get('product_id')
@@ -161,6 +176,16 @@ def billing(request):
                 try:
                     for product_id, item in cart.items():
                         product = get_object_or_404(Product, pk=product_id)
+                        if item['quantity'] > product.quantity:
+                            error_message = f"Quantity for {product.product_name} exceeds available stock ({product.quantity})."
+                            return render(request, 'billing.html', {
+                                'products': products,
+                                'cart': cart,
+                                'total_price': sum(item['price'] * item['quantity'] for item in cart.values()),
+                                'search_query': search_query,
+                                'error_message': error_message
+                            })
+
                         Billing.objects.create(
                             sale_number=sale_number,
                             product_id=product,
@@ -194,6 +219,7 @@ def billing(request):
         'total_price': total_price,
         'search_query': search_query
     })
+
 
 def product_list(request):
     products = Product.objects.all()
