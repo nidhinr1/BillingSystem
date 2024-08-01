@@ -62,7 +62,16 @@
         </nav>
     </div>
     <div class="main" style="padding-left: 50px;">
-        <h1 class="mt-4 mb-4">Product List</h1>
+        <h1 class="mt-4 mb-4">Product List-
+
+            {% if stock_type == 'new' %}
+                New Stock
+            {% elif stock_type == 'old' %}
+                Old Stock
+            {% else %}
+                All Products
+            {% endif %}
+        </h1>
 
         <!-- Search Form -->
         <form class="form-inline mb-4" method="get" action="{% url 'search_products' %}">
@@ -75,6 +84,22 @@
             <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
         </form>
         
+        <form action="{% url 'update_discounts' %}" method="POST">
+            {% csrf_token %}
+            <button type="submit">Update Discounts</button>
+            <a href="{% url 'filter_products' 'new' %}">
+                <button type="button">New Stock</button>
+            </a>
+            <a href="{% url 'filter_products' 'old' %}">
+                <button type="button">Old Stock</button>
+            </a>
+            <a href="{% url 'filter_products' 'all' %}">
+                <button type="button">All Products</button>
+            </a>
+        </form>
+            
+        
+
         <!-- Table of Products -->
         <table class="table table-bordered">
             <thead>
@@ -92,7 +117,9 @@
             <tbody>
                 {% for product in products %}
                 <tr>
-                    <td>{{ product.product_name }}</td>
+                    <td>
+                        {{ product.product_name }}
+                    </td>
                     <td>{{ product.brand }}</td>
                     <td>{{ product.price }}</td>
                     <td>{{ product.discount }}</td>

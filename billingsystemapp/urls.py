@@ -21,4 +21,6 @@ urlpatterns = [
     path('user_list/<str:user_name>/delete/', views.user_delete, name='user_delete'),
     path('search/', views.search_products, name='search_products'),
     path('products_search_by_category/', views.products_search_by_category, name='products_search_by_category'),
+    path('update-discounts/', views.update_discounts_view, name='update_discounts'),
+    path('product/<str:stock_type>/', views.filter_products, name='filter_products'),
 ]

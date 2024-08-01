@@ -14,6 +14,8 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle,Paragraph,Spacer
 from reportlab.lib.styles import getSampleStyleSheet,ParagraphStyle
 import io,uuid
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 def addcategory(request):
     if request.method =='POST':
@@ -245,10 +247,18 @@ def billing(request):
         'search_query': search_query
     })
 
-
 def product_list(request):
+    now = timezone.now().date()
     products = Product.objects.all()
-    return render(request, 'products.html', {'products': products})
+
+    # Calculate cutoff date for new stock
+    six_months_ago = now - timezone.timedelta(days=6*30)  # Approximate 6 months
+
+    # Pass products and cutoff date to template
+    return render(request, 'products.html', {
+        'products': products,
+        'six_months_ago': six_months_ago,
+    })
 
 def product_search(request):
     query = request.GET.get('q')
@@ -365,3 +375,23 @@ def products_search_by_category(request):
         products = Product.objects.all()
         
     return render(request, 'products.html', {'products': products, 'category_query': category_query})
+
+@require_POST
+def update_discounts_view(request):
+    products = Product.objects.all()
+    for product in products:
+        product.update_discount()
+    
+    return redirect('product')
+
+def filter_products(request, stock_type):
+    six_months_ago = date.today() - timedelta(days=6*30)  # Approximate 6 months
+
+    if stock_type == 'new':
+        products = Product.objects.filter(manufacturingdate__gte=six_months_ago)
+    elif stock_type == 'old':
+        products = Product.objects.filter(manufacturingdate__lt=six_months_ago)
+    else:
+        products = Product.objects.all()
+
+    return render(request, 'products.html', {'products': products, 'stock_type': stock_type})
