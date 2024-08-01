@@ -12,6 +12,7 @@ class Product(models.Model):
     product_name = models.CharField(max_length=200)
     brand = models.CharField(max_length=200, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    discount=models.DecimalField(max_digits=10, decimal_places=2,default=0.00)
     quantity = models.IntegerField()
     manufacturingdate = models.DateField(null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)

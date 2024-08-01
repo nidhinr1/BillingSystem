@@ -69,7 +69,12 @@
             <input class="form-control mr-sm-2" type="search" placeholder="Search by Product Name" aria-label="Search" name="q" value="{{ query }}">
             <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
         </form>
-
+        <p>or</p>
+        <form class="form-inline mb-4" method="get" action="{% url 'products_search_by_category' %}">
+            <input class="form-control mr-sm-2" type="search" placeholder="Search by Category" aria-label="Search" name="category" value="{{ category_query }}">
+            <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button>
+        </form>
+        
         <!-- Table of Products -->
         <table class="table table-bordered">
             <thead>
@@ -77,6 +82,7 @@
                     <th>Product Name</th>
                     <th>Brand</th>
                     <th>Price</th>
+                    <th>Discount</th>
                     <th>Quantity</th>
                     <th>Category</th>
                     <th>Manufacturing Date</th>
@@ -89,6 +95,7 @@
                     <td>{{ product.product_name }}</td>
                     <td>{{ product.brand }}</td>
                     <td>{{ product.price }}</td>
+                    <td>{{ product.discount }}</td>
                     <td>{{ product.quantity }}</td>
                     <td>{{ product.category.name }}</td>
                     <td>{{ product.manufacturingdate }}</td>

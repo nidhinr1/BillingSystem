@@ -12,7 +12,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle,Paragraph,Spacer
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet,ParagraphStyle
 import io,uuid
 
 def addcategory(request):
@@ -72,37 +72,58 @@ def generate_pdf_bill(sale_number, cart, purchasetime):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="bill_{sale_number}.pdf"'
 
-    doc = SimpleDocTemplate(response, pagesize=letter)
+    doc = SimpleDocTemplate(response, pagesize=letter, rightMargin=72, leftMargin=72)  # Added margins
     elements = []
 
     styles = getSampleStyleSheet()
-    title = Paragraph("Purchase Bill", styles['Title'])
+    title_style = styles['Title']
+    company_title_style = ParagraphStyle(name='CompanyTitle', fontSize=18, alignment=1)
+    normal_style = styles['Normal']
+
+    # Add company name
+    company_name = "Your Company Name"
+    company_title = Paragraph(company_name, company_title_style)
+    elements.append(company_title)
+    elements.append(Spacer(1, 12))
+
+    # Add main title
+    main_title = Paragraph("Purchase Bill", title_style)
+    elements.append(main_title)
+    elements.append(Spacer(1, 12))
     
-    elements.append(title)
-    elements.append(Spacer(1,12))
-    elements.append(Paragraph(f"Purchase Time: {purchasetime.strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal']))
-    elements.append(Paragraph("<br/>", styles['Normal']))
-    elements.append(Spacer(1,12))
+    elements.append(Paragraph(f"Purchase Time: {purchasetime.strftime('%Y-%m-%d %H:%M:%S')}", normal_style))
+    elements.append(Spacer(1, 12))
+
+    # Table data
     data = [
-        ["Product Name", "Quantity", "Purchase Date", "Price", "Total Price"]
+        ["Product Name", "Qty", "Original Price", "Discounted Price", "Total Price"]
     ]
 
     for item in cart.values():
-        data.append([item['name'], item['quantity'], purchasetime.strftime('%Y-%m-%d %H:%M:%S'), f"Rs {item['price']}", f"Rs {item['price'] * item['quantity']}"])
+        total_price = item['discounted_price'] * item['quantity']
+        data.append([item['name'], item['quantity'], f"Rs {item['original_price']}", 
+                     f"Rs {item['discounted_price']}", f"Rs {total_price}"])
 
-    total_price = sum(item['price'] * item['quantity'] for item in cart.values())
+    final_total_price = sum(item['discounted_price'] * item['quantity'] for item in cart.values())
     data.append([])
-    data.append(["", "", "", "Final Amount:", f"Rs {total_price}"])
+    data.append(["", "", "", "Final Amount:", f"Rs {final_total_price}"])
 
-    table = Table(data, colWidths=[2.5 * inch, 1.0 * inch, 2.0 * inch, 1.0 * inch, 1.5 * inch])
+    table = Table(data, colWidths=[1.5 * inch, 1.0 * inch, 1.5 * inch, 1.5 * inch, 1.5 * inch])
 
     table.setStyle(TableStyle([
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('TOPPADDING', (0, 0), (-1, -1), 12),  # Increase height of each row
         ('GRID', (0, 0), (-1, -1), 1, colors.black),
     ]))
     elements.append(table)
+
+    # Add thank you message
+    thank_you_message = Paragraph("Thank you for your purchase! Have a great day!", normal_style)
+    elements.append(Spacer(1, 24))
+    elements.append(thank_you_message)
+
     doc.build(elements)
 
     return response
@@ -132,7 +153,7 @@ def billing(request):
                     'msg': f'{product.product_name} is out of stock.',
                     'products': products,
                     'cart': cart,
-                    'total_price': sum(item['price'] * item['quantity'] for item in cart.values()),
+                    'total_price': sum(item['discounted_price'] * item['quantity'] for item in cart.values()),
                     'search_query': search_query
                 })
             
@@ -148,16 +169,20 @@ def billing(request):
                         'msg': f'Quantity requested for {product.product_name} exceeds stock available ({product.quantity}).',
                         'products': products,
                         'cart': cart,
-                        'total_price': sum(item['price'] * item['quantity'] for item in cart.values()),
+                        'total_price': sum(item['discounted_price'] * item['quantity'] for item in cart.values()),
                         'search_query': search_query
                     })
 
+                # Calculate the discounted price
+                discounted_price = float(product.price) * (1 - (float(product.discount) / 100))
+                
                 if product_id in cart:
                     cart[product_id]['quantity'] += quantity
                 else:
                     cart[product_id] = {
                         'name': product.product_name,
-                        'price': float(product.price),
+                        'original_price': float(product.price),
+                        'discounted_price': discounted_price,
                         'quantity': quantity
                     }
                 request.session['cart'] = cart
@@ -181,7 +206,7 @@ def billing(request):
                             return render(request, 'billing.html', {
                                 'products': products,
                                 'cart': cart,
-                                'total_price': sum(item['price'] * item['quantity'] for item in cart.values()),
+                                'total_price': sum(item['discounted_price'] * item['quantity'] for item in cart.values()),
                                 'search_query': search_query,
                                 'error_message': error_message
                             })
@@ -190,28 +215,28 @@ def billing(request):
                             sale_number=sale_number,
                             product_id=product,
                             quantity=item['quantity'],
-                            price=item['price'],
+                            price=item['discounted_price'],  # Final discounted price
                             purchasetime=purchasetime
                         )
                         product.quantity -= item['quantity']
                         product.save()
 
                     response = generate_pdf_bill(sale_number, cart, purchasetime)
-                    request.session['cart'] = {}  # Clear cart
-                    request.session['sale_number'] = None  # Clear sale_number after transaction
+                    request.session['cart'] = {}  
+                    request.session['sale_number'] = None
                     return response
                 except IntegrityError:
                     error_message = "You cannot add the same product twice in the same bill."
                     return render(request, 'billing.html', {
                         'products': products,
                         'cart': cart,
-                        'total_price': sum(item['price'] * item['quantity'] for item in cart.values()),
+                        'total_price': sum(item['discounted_price'] * item['quantity'] for item in cart.values()),
                         'search_query': search_query,
                         'error_message': error_message
                     })
 
     cart = request.session.get('cart', {})
-    total_price = sum(item['price'] * item['quantity'] for item in cart.values())
+    total_price = sum(item['discounted_price'] * item['quantity'] for item in cart.values())
 
     return render(request, 'billing.html', {
         'products': products,
@@ -238,6 +263,7 @@ def product_update(request, product_id):
     if request.method == 'POST':
         product.product_name = request.POST.get('product_name')
         product.price = request.POST.get('price')
+        product.discount = request.POST.get('discount')
         product.brand=request.POST['brand']
         product.quantity = request.POST.get('quantity')
         category_id = request.POST.get('category')
@@ -294,7 +320,7 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('billing')  # Replace 'home' with your desired redirect URL
+            return redirect('billing')
         else:
             messages.error(request, 'Invalid username or password')
     return render(request, 'login.html')
@@ -324,3 +350,18 @@ def search_products(request):
         products = Product.objects.all()
     
     return render(request, 'products.html', {'products': products, 'query': query})
+
+def products_search_by_category(request):
+    category_query = request.GET.get('category')
+    products = []
+
+    if category_query:
+        try:
+            category = Category.objects.get(name__iexact=category_query)
+            products = Product.objects.filter(category=category)
+        except Category.DoesNotExist:
+            products = Product.objects.none()
+    else:
+        products = Product.objects.all()
+        
+    return render(request, 'products.html', {'products': products, 'category_query': category_query})
