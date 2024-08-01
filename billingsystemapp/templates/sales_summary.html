@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Summary</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <title>Add Customers</title>
 </head>
 <body>
     <div class="nav">
@@ -64,29 +64,45 @@
             </div>
         </nav>
     </div>
-    <div class="container mt-5">
-        <h1 class="mb-4">Add a New Customer</h1>
-        <form method="post" action="{% url 'addcustomer' %}">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="customer_name">Customer Name:</label>
-                <input type="text" class="form-control" id="customer_name" name="customer_name" required>
+    <div class="container mt-4">
+        <h1>Sales Summary</h1>
+        <div class="d-flex justify-content-between mb-4">
+            <div>
+                <h4>Total Products Sold: {{ total_products_sold }}</h4>
+                <h4>Total Money Earned: {{ total_money_earned }}</h4>
             </div>
-            <div class="form-group">
-                <label for="phone">Phone:</label>
-                <input type="text" class="form-control" id="phone" name="phone" required>
+            <div>
+                <a href="{% url 'sales_today' %}" class="btn btn-primary">Today's Sales</a>
+                <a href="{% url 'sales_this_week' %}" class="btn btn-primary">This Week's Sales</a>
+                <a href="{% url 'sales_summary' %}" class="btn btn-secondary">All Sales</a>
             </div>
-            <div class="form-group">
-                <label for="purchase_date">Purchase Date:</label>
-                <input type="date" class="form-control" id="purchase_date" name="purchase_date" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Add Customer</button>
-        </form>
-        {% if msg %}
-        <div class="alert alert-info mt-3" role="alert">
-            {{ msg }}
         </div>
-        {% endif %}
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Sale Number</th>
+                    <th>Product ID</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Purchase Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td>{{ sale.sale_number }}</td>
+                    <td>{{ sale.product_id }}</td>
+                    <td>{{ sale.quantity }}</td>
+                    <td>{{ sale.price }}</td>
+                    <td>{{ sale.purchasetime }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">No sales data available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>

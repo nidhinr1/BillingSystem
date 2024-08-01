@@ -21,11 +21,8 @@ class Product(models.Model):
         return self.product_name
     def update_discount(self):
         if self.manufacturingdate:
-            # Calculate the number of 6-month periods since manufacturing
             months_old = (date.today().year - self.manufacturingdate.year) * 12 + date.today().month - self.manufacturingdate.month
             six_month_periods = months_old // 6
-            
-            # Define starting discounts based on category ID (from 12 to 17)
             starting_discounts = {
                 12: 5.00,  
                 13: 10.00, 
@@ -34,14 +31,8 @@ class Product(models.Model):
                 16: 12.00,
                 17: 7.00, 
             }
-            
-            # Get the starting discount based on category ID
             starting_discount = starting_discounts.get(self.category_id, 0.00)
-            
-            # Calculate the total discount
             total_discount = starting_discount + (six_month_periods * 5.00)
-            
-            # Ensure discount does not exceed a reasonable limit, for example, 90%
             if total_discount > 90.00:
                 total_discount = 90.00
 

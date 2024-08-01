@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Stock Details</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .stock-new {
+            color: green;
+        }
+        .stock-old {
+            color: red;
+        }
+        .out-of-stock {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Product Stock Details</h1>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Brand</th>
+                    <th>Category</th>
+                    <th>Stock Type</th>
+                    <th>Product Quantity</th>
+                    <th>Stock Quantity</th>
+                    <th>Products Sold</th>
+                    <th>Product Price</th>
+                    <th>Stock Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detail in product_details %}
+                <tr>
+                    <td>
+                        {{ detail.product.product_name }}
+                        {% if detail.product.quantity == 0 %}
+                            <br><span class="out-of-stock">Out of Stock</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ detail.product.brand }}</td>
+                    <td>{{ detail.product.category.name }}</td>
+                    <td class="{% if detail.stock_type == 'New Stock' %}stock-new{% else %}stock-old{% endif %}">
+                        {{ detail.stock_type }}
+                    </td>
+                    <td>{{ detail.product.quantity }}</td>
+                    <td>{{ detail.stock.stock }}</td>
+                    <td>{{ detail.products_sold }}</td>
+                    <td>{{ detail.product.price }}</td>
+                    <td>{{ detail.stock.price }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9">No products found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

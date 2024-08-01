@@ -4,9 +4,9 @@ from django.contrib.auth.models import User,auth
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib.auth import authenticate, login,logout
 from django.http import JsonResponse,HttpResponse,FileResponse
-import datetime
+from datetime import datetime,timedelta
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q,Sum
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
@@ -395,3 +395,82 @@ def filter_products(request, stock_type):
         products = Product.objects.all()
 
     return render(request, 'products.html', {'products': products, 'stock_type': stock_type})
+
+def sales_summary(request):
+    sales = Billing.objects.all()
+    total_products_sold = sales.aggregate(Sum('quantity'))['quantity__sum'] or 0
+    total_money_earned = sales.aggregate(Sum('price'))['price__sum'] or 0
+    context = {
+        'sales': sales,
+        'total_products_sold': total_products_sold,
+        'total_money_earned': total_money_earned,
+    }
+    return render(request, 'sales_summary.html', context)
+
+def sales_today(request):
+    today = datetime.now().date()
+    sales = Billing.objects.filter(purchasetime__date=today)
+    total_products_sold = sales.aggregate(Sum('quantity'))['quantity__sum'] or 0
+    total_money_earned = sales.aggregate(Sum('price'))['price__sum'] or 0
+    context = {
+        'sales': sales,
+        'total_products_sold': total_products_sold,
+        'total_money_earned': total_money_earned,
+    }
+    return render(request, 'sales_summary.html', context)
+
+def sales_this_week(request):
+    start_of_week = datetime.now().date() - timedelta(days=datetime.now().weekday())
+    sales = Billing.objects.filter(purchasetime__date__gte=start_of_week)
+    total_products_sold = sales.aggregate(Sum('quantity'))['quantity__sum'] or 0
+    total_money_earned = sales.aggregate(Sum('price'))['price__sum'] or 0
+    context = {
+        'sales': sales,
+        'total_products_sold': total_products_sold,
+        'total_money_earned': total_money_earned,
+    }
+    return render(request, 'sales_summary.html', context)
+
+
+def product_stock_view(request):
+    products = Product.objects.all()
+    product_details = []
+
+    for product in products:
+        stock_item = stock.objects.get(product_name=product)
+        products_sold = stock_item.stock - product.quantity  # Updated calculation
+        stock_type = 'New Stock' if product.manufacturingdate and product.manufacturingdate > timezone.now().date() - timedelta(days=180) else 'Old Stock'
+        
+        product_details.append({
+            'product': product,
+            'stock': stock_item,
+            'products_sold': products_sold,
+            'stock_type': stock_type,
+        })
+
+    context = {
+        'product_details': product_details
+    }
+
+    return render(request, 'product_stock.html', context)
+
+def profit_loss_view(request):
+    billings = Billing.objects.select_related('product_id')
+    profit_loss_details = []
+
+    for billing in billings:
+        stock_item = stock.objects.get(product_name=billing.product_id)
+        profit_or_loss = (billing.price - stock_item.price) * billing.quantity
+
+        profit_loss_details.append({
+            'product': billing.product_id,
+            'billing_price': billing.price,
+            'stock_price': stock_item.price,
+            'profit_or_loss': profit_or_loss,
+        })
+
+    context = {
+        'profit_loss_details': profit_loss_details
+    }
+
+    return render(request, 'profit_loss.html', context)

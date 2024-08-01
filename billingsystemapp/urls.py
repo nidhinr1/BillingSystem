@@ -23,4 +23,9 @@ urlpatterns = [
     path('products_search_by_category/', views.products_search_by_category, name='products_search_by_category'),
     path('update-discounts/', views.update_discounts_view, name='update_discounts'),
     path('product/<str:stock_type>/', views.filter_products, name='filter_products'),
+    path('sales_summary/', views.sales_summary, name='sales_summary'),
+    path('sales_today/', views.sales_today, name='sales_today'),
+    path('sales_this_week/', views.sales_this_week, name='sales_this_week'),
+    path('product_stock/', views.product_stock_view, name='product_stock'),
+    path('profit_loss/', views.profit_loss_view, name='profit_loss'),
 ]
