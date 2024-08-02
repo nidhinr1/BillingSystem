@@ -19,25 +19,42 @@ class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     def __str__(self):
         return self.product_name
+    from datetime import date
+
     def update_discount(self):
         if self.manufacturingdate:
+        # Calculate the number of months since the manufacturing date
             months_old = (date.today().year - self.manufacturingdate.year) * 12 + date.today().month - self.manufacturingdate.month
-            six_month_periods = months_old // 6
-            starting_discounts = {
-                12: 5.00,  
-                13: 10.00, 
-                14: 15.00, 
-                15: 8.00,  
-                16: 12.00,
-                17: 7.00, 
-            }
-            starting_discount = starting_discounts.get(self.category_id, 0.00)
-            total_discount = starting_discount + (six_month_periods * 5.00)
-            if total_discount > 90.00:
-                total_discount = 90.00
 
-            self.discount = total_discount
+        # If the product is within the first 6 months, set discount to 0
+            if months_old < 6:
+                self.discount = 0.00
+            else:
+            # Calculate six-month periods
+                six_month_periods = (months_old - 6) // 6
+
+            # Define starting discounts based on category
+                starting_discounts = {
+                    12: 5.00,  # Example category ID mappings
+                    13: 10.00,
+                    14: 15.00,
+                    15: 8.00,
+                    16: 12.00,
+                    17: 7.00,
+                }
+                starting_discount = starting_discounts.get(self.category_id, 0.00)
+
+            # Calculate total discount with increment
+                total_discount = starting_discount + (six_month_periods * 5.00)
+            
+            # Ensure total discount does not exceed 90%
+                if total_discount > 90.00:
+                    total_discount = 90.00
+
+                self.discount = total_discount
+        
             self.save()
+
 
 class Customer(models.Model):
     customer_id = models.AutoField(primary_key=True)

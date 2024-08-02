@@ -44,7 +44,7 @@ def addproduct(request):
     if request.method == 'POST':
         name = request.POST['pdtname']
         brand = request.POST['brand']
-        price = request.POST['pdtprice']
+        price = float(request.POST['pdtprice'])
         stock_quantity = request.POST['pdtstock']
         category_name = request.POST['pdtcategory']
         manufacturing = request.POST['pdtmanu']
@@ -67,7 +67,7 @@ def addproduct(request):
             product_name=product,  # Link to the Product instance
             category=category,
             stock=stock_quantity,
-            price=price
+            price = round(price * 0.95, 2)
         )
         stock_entry.save()
 
@@ -299,7 +299,7 @@ def product_update(request, product_id):
         # Update Product details
         product.product_name = request.POST.get('product_name')
         product.brand = request.POST.get('brand')
-        product.price = request.POST.get('price')
+        product.price = float(request.POST.get('price'))
         product.discount = request.POST.get('discount')
         product.quantity = request.POST.get('quantity')
         product.manufacturingdate = request.POST.get('pdtmanu')
@@ -309,7 +309,7 @@ def product_update(request, product_id):
 
         # Update Stock details
         stock_item = get_object_or_404(stock, product_name=product)
-        stock_item.price = product.price  # Sync stock price with product price
+        stock_item.price = round(product.price * 0.95, 2)  # Sync stock price with product price
         stock_item.stock = product.quantity  # Sync stock quantity with product quantity
         stock_item.save()
 
@@ -466,6 +466,7 @@ def sales_this_week(request):
     }
     return render(request, 'sales_summary.html', context)
 
+
 def product_stock_view(request):
     products = Product.objects.all()
     product_details = []
@@ -474,22 +475,32 @@ def product_stock_view(request):
     total_stock = 0
 
     for product in products:
-        stock_item = stock.objects.get(product_name=product)
-        products_sold = stock_item.stock - product.quantity  # Updated calculation
+        try:
+            stock_item = stock.objects.get(product_name=product)
+            products_sold = stock_item.stock - product.quantity  # Updated calculation
+            
+            stock_type = 'New Stock' if product.manufacturingdate and product.manufacturingdate > timezone.now().date() - timedelta(days=180) else 'Old Stock'
+            
+            # Update totals
+            total_unsold_products += product.quantity
+            total_sold_products += products_sold
+            total_stock += stock_item.stock
 
-        stock_type = 'New Stock' if product.manufacturingdate and product.manufacturingdate > timezone.now().date() - timedelta(days=180) else 'Old Stock'
+            product_details.append({
+                'product': product,
+                'stock': stock_item,
+                'products_sold': products_sold,
+                'stock_type': stock_type,
+            })
 
-        # Update totals
-        total_unsold_products += product.quantity
-        total_sold_products += products_sold
-        total_stock += stock_item.stock
-
-        product_details.append({
-            'product': product,
-            'stock': stock_item,
-            'products_sold': products_sold,
-            'stock_type': stock_type,
-        })
+        except stock.DoesNotExist:
+            # Handle the case where no stock item exists for the product
+            product_details.append({
+                'product': product,
+                'stock': None,  # No stock information available
+                'products_sold': None,  # No products sold information available
+                'stock_type': 'Unknown',  # Or any default value you prefer
+            })
 
     context = {
         'product_details': product_details,
@@ -499,6 +510,7 @@ def product_stock_view(request):
     }
 
     return render(request, 'product_stock.html', context)
+
 
 
 def profit_loss_view(request):

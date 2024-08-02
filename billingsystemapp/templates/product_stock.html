@@ -82,24 +82,8 @@
             </div>
         </nav>
     </div>
-
     <div class="container mt-5">
-        <h1 class="mt-4 mb-4">Product Stock Details</h1>
-
-        <!-- Display totals at the top -->
-        <div class="row mb-4">
-            <div class="col">
-                <h4>Total Unsold Products: {{ total_unsold_products }}</h4>
-            </div>
-            <div class="col">
-                <h4>Total Sold Products: {{ total_sold_products }}</h4>
-            </div>
-            <div class="col">
-                <h4>Total Stock: {{ total_stock }}</h4>
-            </div>
-        </div>
-
-        <!-- Table of Product Stock Details -->
+        <h1 class="mb-4">Product Stock Details</h1>
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -141,19 +125,6 @@
                 {% endfor %}
             </tbody>
         </table>
-
-        <!-- Action Buttons -->
-        <form action="{% url 'update_discounts' %}" method="POST" class="mt-4">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-primary">Update Discounts</button>
-            <a href="{% url 'filter_products' 'new' %}" class="btn btn-success">New Stock</a>
-            <a href="{% url 'filter_products' 'old' %}" class="btn btn-warning">Old Stock</a>
-            <a href="{% url 'filter_products' 'all' %}" class="btn btn-secondary">All Products</a>
-        </form>
     </div>
-
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
