@@ -19,8 +19,87 @@
     </style>
 </head>
 <body>
+    <div class="nav">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="width: 100%;">
+            <div class="container-fluid">
+                <a id="logo" class="navbar-brand" href="{% url 'billing' %}">Billingsystem</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
+                    <ul class="navbar-nav" style="padding-left: 350px;">
+                        {% if user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'adduser' %}">Add User</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'addcategory' %}">Add Category</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'addproduct' %}">Add Product</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'user_list' %}">Users</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'category_list' %}">Category</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'sales_summary' %}">Sales Summary</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'product_stock' %}">Stocks</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'profit_loss' %}">Profit/Loss</a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'addcustomer' %}">Add Customer</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'billing' %}">Billing</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'product' %}">Products</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'customers' %}">Customers</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        {% if user.is_authenticated %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'login' %}">Login</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+
     <div class="container mt-5">
-        <h1 class="mb-4">Product Stock Details</h1>
+        <h1 class="mt-4 mb-4">Product Stock Details</h1>
+
+        <!-- Display totals at the top -->
+        <div class="row mb-4">
+            <div class="col">
+                <h4>Total Unsold Products: {{ total_unsold_products }}</h4>
+            </div>
+            <div class="col">
+                <h4>Total Sold Products: {{ total_sold_products }}</h4>
+            </div>
+            <div class="col">
+                <h4>Total Stock: {{ total_stock }}</h4>
+            </div>
+        </div>
+
+        <!-- Table of Product Stock Details -->
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -62,6 +141,19 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        <!-- Action Buttons -->
+        <form action="{% url 'update_discounts' %}" method="POST" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">Update Discounts</button>
+            <a href="{% url 'filter_products' 'new' %}" class="btn btn-success">New Stock</a>
+            <a href="{% url 'filter_products' 'old' %}" class="btn btn-warning">Old Stock</a>
+            <a href="{% url 'filter_products' 'all' %}" class="btn btn-secondary">All Products</a>
+        </form>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -40,20 +40,41 @@ def adduser(request):
         return render(request,'adduser.html')
 
 def addproduct(request):
-    types=Category.objects.all().values
-    if request.method =='POST':
-        name=request.POST['pdtname']
-        brand=request.POST['brand']
-        price=request.POST['pdtprice']
-        stock=request.POST['pdtstock']
-        category_name=request.POST['pdtcategory'] 
-        manufacturing = request.POST['pdtmanu']  
+    types = Category.objects.all().values()
+    if request.method == 'POST':
+        name = request.POST['pdtname']
+        brand = request.POST['brand']
+        price = request.POST['pdtprice']
+        stock_quantity = request.POST['pdtstock']
+        category_name = request.POST['pdtcategory']
+        manufacturing = request.POST['pdtmanu']
+
         category = get_object_or_404(Category, name=category_name)
-        q=Product(product_name=name,brand=brand,price=price,quantity=stock,category=category,manufacturingdate=manufacturing)
-        q.save()
-        return render(request,'addproduct.html',{'msg':'Product submitted','type':types})
+
+        # Create Product instance
+        product = Product(
+            product_name=name,
+            brand=brand,
+            price=price,
+            quantity=stock_quantity,
+            category=category,
+            manufacturingdate=manufacturing
+        )
+        product.save()
+
+        # Create Stock instance
+        stock_entry = stock(
+            product_name=product,  # Link to the Product instance
+            category=category,
+            stock=stock_quantity,
+            price=price
+        )
+        stock_entry.save()
+
+        return render(request, 'addproduct.html', {'msg': 'Product and Stock submitted', 'type': types})
     else:
-        return render(request,'addproduct.html',{'type':types})
+        return render(request, 'addproduct.html', {'type': types})
+
 
 def addcustomer(request):
     if request.method == 'POST':
@@ -155,7 +176,7 @@ def billing(request):
                     'msg': f'{product.product_name} is out of stock.',
                     'products': products,
                     'cart': cart,
-                    'total_price': sum(item['discounted_price'] * item['quantity'] for item in cart.values()),
+                    'total_price': round_to_two_decimal_places(sum(item['discounted_price'] * item['quantity'] for item in cart.values())),
                     'search_query': search_query
                 })
             
@@ -171,19 +192,19 @@ def billing(request):
                         'msg': f'Quantity requested for {product.product_name} exceeds stock available ({product.quantity}).',
                         'products': products,
                         'cart': cart,
-                        'total_price': sum(item['discounted_price'] * item['quantity'] for item in cart.values()),
+                        'total_price': round_to_two_decimal_places(sum(item['discounted_price'] * item['quantity'] for item in cart.values())),
                         'search_query': search_query
                     })
 
                 # Calculate the discounted price
-                discounted_price = float(product.price) * (1 - (float(product.discount) / 100))
+                discounted_price = round_to_two_decimal_places(float(product.price) * (1 - (float(product.discount) / 100)))
                 
                 if product_id in cart:
                     cart[product_id]['quantity'] += quantity
                 else:
                     cart[product_id] = {
                         'name': product.product_name,
-                        'original_price': float(product.price),
+                        'original_price': round_to_two_decimal_places(float(product.price)),
                         'discounted_price': discounted_price,
                         'quantity': quantity
                     }
@@ -199,7 +220,7 @@ def billing(request):
 
         if 'submit_bill' in request.POST:
             if cart:
-                purchasetime = datetime.datetime.now()
+                purchasetime = datetime.now()
                 try:
                     for product_id, item in cart.items():
                         product = get_object_or_404(Product, pk=product_id)
@@ -208,7 +229,7 @@ def billing(request):
                             return render(request, 'billing.html', {
                                 'products': products,
                                 'cart': cart,
-                                'total_price': sum(item['discounted_price'] * item['quantity'] for item in cart.values()),
+                                'total_price': round_to_two_decimal_places(sum(item['discounted_price'] * item['quantity'] for item in cart.values())),
                                 'search_query': search_query,
                                 'error_message': error_message
                             })
@@ -232,13 +253,13 @@ def billing(request):
                     return render(request, 'billing.html', {
                         'products': products,
                         'cart': cart,
-                        'total_price': sum(item['discounted_price'] * item['quantity'] for item in cart.values()),
+                        'total_price': round_to_two_decimal_places(sum(item['discounted_price'] * item['quantity'] for item in cart.values())),
                         'search_query': search_query,
                         'error_message': error_message
                     })
 
     cart = request.session.get('cart', {})
-    total_price = sum(item['discounted_price'] * item['quantity'] for item in cart.values())
+    total_price = round_to_two_decimal_places(sum(item['discounted_price'] * item['quantity'] for item in cart.values()))
 
     return render(request, 'billing.html', {
         'products': products,
@@ -246,6 +267,10 @@ def billing(request):
         'total_price': total_price,
         'search_query': search_query
     })
+
+def round_to_two_decimal_places(value):
+    """Rounds a decimal value to two decimal places."""
+    return round(value, 2)
 
 def product_list(request):
     now = timezone.now().date()
@@ -271,18 +296,28 @@ def product_search(request):
 def product_update(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
     if request.method == 'POST':
+        # Update Product details
         product.product_name = request.POST.get('product_name')
+        product.brand = request.POST.get('brand')
         product.price = request.POST.get('price')
         product.discount = request.POST.get('discount')
-        product.brand=request.POST['brand']
         product.quantity = request.POST.get('quantity')
+        product.manufacturingdate = request.POST.get('pdtmanu')
         category_id = request.POST.get('category')
-        product.manufacturingdate = request.POST['pdtmanu'] 
-        product.category = Category.objects.get(pk=category_id)
+        product.category = get_object_or_404(Category, pk=category_id)
         product.save()
+
+        # Update Stock details
+        stock_item = get_object_or_404(stock, product_name=product)
+        stock_item.price = product.price  # Sync stock price with product price
+        stock_item.stock = product.quantity  # Sync stock quantity with product quantity
+        stock_item.save()
+
         return redirect('product')
+
     categories = Category.objects.all()
     return render(request, 'product_update.html', {'product': product, 'categories': categories})
+
 
 def product_delete(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
@@ -431,16 +466,24 @@ def sales_this_week(request):
     }
     return render(request, 'sales_summary.html', context)
 
-
 def product_stock_view(request):
     products = Product.objects.all()
     product_details = []
+    total_unsold_products = 0
+    total_sold_products = 0
+    total_stock = 0
 
     for product in products:
         stock_item = stock.objects.get(product_name=product)
         products_sold = stock_item.stock - product.quantity  # Updated calculation
+
         stock_type = 'New Stock' if product.manufacturingdate and product.manufacturingdate > timezone.now().date() - timedelta(days=180) else 'Old Stock'
-        
+
+        # Update totals
+        total_unsold_products += product.quantity
+        total_sold_products += products_sold
+        total_stock += stock_item.stock
+
         product_details.append({
             'product': product,
             'stock': stock_item,
@@ -449,18 +492,24 @@ def product_stock_view(request):
         })
 
     context = {
-        'product_details': product_details
+        'product_details': product_details,
+        'total_unsold_products': total_unsold_products,
+        'total_sold_products': total_sold_products,
+        'total_stock': total_stock,
     }
 
     return render(request, 'product_stock.html', context)
 
+
 def profit_loss_view(request):
     billings = Billing.objects.select_related('product_id')
     profit_loss_details = []
+    total_profit_or_loss = 0
 
     for billing in billings:
         stock_item = stock.objects.get(product_name=billing.product_id)
         profit_or_loss = (billing.price - stock_item.price) * billing.quantity
+        total_profit_or_loss += profit_or_loss
 
         profit_loss_details.append({
             'product': billing.product_id,
@@ -470,7 +519,9 @@ def profit_loss_view(request):
         })
 
     context = {
-        'profit_loss_details': profit_loss_details
+        'profit_loss_details': profit_loss_details,
+        'total_profit_or_loss': total_profit_or_loss,
     }
 
     return render(request, 'profit_loss.html', context)
+

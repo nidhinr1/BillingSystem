@@ -1,4 +1,3 @@
-<!-- templates/profit_loss.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,10 +5,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profit or Loss</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .profit {
+            color: green;
+        }
+        .loss {
+            color: red;
+        }
+    </style>
 </head>
 <body>
+    <div class="nav">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="width: 100%;">
+            <div class="container-fluid">
+                <a id="logo" class="navbar-brand" href="{% url 'billing' %}">Billingsystem</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
+                    <ul class="navbar-nav" style="padding-left: 350px;">
+                        {% if user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'adduser' %}">Add User</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'addcategory' %}">Add Category</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'addproduct' %}">Add Product</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'user_list' %}">Users</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'category_list' %}">Category</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'sales_summary' %}">Sales Summary</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'product_stock' %}">Stocks</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'profit_loss' %}">Profit/Loss</a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'addcustomer' %}">Add Customer</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'billing' %}">Billing</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'product' %}">Products</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'customers' %}">Customers</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        {% if user.is_authenticated %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'login' %}">Login</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
     <div class="container mt-5">
         <h1 class="mb-4">Profit or Loss Analysis</h1>
+        <div class="mb-4">
+            <h3>Total Profit/Loss: 
+                <span class="{% if total_profit_or_loss >= 0 %}profit{% else %}loss{% endif %}">
+                    {{ total_profit_or_loss }}
+                </span>
+            </h3>
+        </div>
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -25,7 +102,11 @@
                     <td>{{ detail.product.product_name }}</td>
                     <td>{{ detail.billing_price }}</td>
                     <td>{{ detail.stock_price }}</td>
-                    <td>{{ detail.profit_or_loss }}</td>
+                    <td>
+                        <span class="{% if detail.profit_or_loss >= 0 %}profit{% else %}loss{% endif %}">
+                            {{ detail.profit_or_loss }}
+                        </span>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
