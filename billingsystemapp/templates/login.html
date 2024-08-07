@@ -8,60 +8,85 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            background-color: #1d2b64;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            height: 80vh;
             margin: 0;
             flex-direction: column;
+            font-weight: bold;
         }
         .title {
             font-size: 75px;
             margin-bottom: 20px;
-            font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+            font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+            color: #ffffff;
+            position: relative;
+            top: 0;
+            left: 0;
         }
+        
         .login-box {
-            width: 300px;
-            padding: 20px;
+            width: 350px;
+            padding: 40px;
             background-color: #fff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 10px;
+            text-align: center;
         }
         .login-box h2 {
-            text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .login-box label {
+            display: block;
+            margin-bottom: 5px;
+            font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+            text-align: left;
+            font-weight: bold;
+            color: #000000;
         }
         .login-box input[type="text"],
         .login-box input[type="password"] {
-            width: calc(100% - 20px);
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            width: 100%;
+            padding: 12px 20px;
+            margin: 5px 0 20px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 25px;
+            box-sizing: border-box;
         }
         .login-box input[type="submit"] {
             width: 100%;
-            padding: 10px;
+            padding: 12px 20px;
             border: none;
-            background-color: #4CAF50;
+            border-radius: 25px;
+            background-color: #1d2b64;
             color: #fff;
             cursor: pointer;
-            border-radius: 5px;
+            font-size: 18px;
         }
         .login-box input[type="submit"]:hover {
-            background-color: #357b9c;
+            background-color: #45a049;
         }
         .messages {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         .messages .danger {
             color: #ff0000;
         }
+        .form-control::placeholder {
+            color: #aaa;
+        }
+        .form-control:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 8px 0 #4CAF50;
+        }
     </style>
 </head>
 <body>
-    <div class="title text-center">Billing-System</div>
+    <div class="title center">Billing-System</div>
     <div class="login-box">
         <h2>Login</h2>
         <div class="messages">
@@ -71,8 +96,8 @@
         </div>
         <form method="post">
             {% csrf_token %}
-            <input type="text" name="username" class="form-control" placeholder="Username" required>
-            <input type="password" name="password" class="form-control" placeholder="Password" required>
+            <input type="text" id="username" name="username" class="form-control" placeholder="Username" required>
+            <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
             <input type="submit" class="btn btn-success btn-block" value="Login">
         </form>
     </div>
