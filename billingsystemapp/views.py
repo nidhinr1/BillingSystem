@@ -76,20 +76,11 @@ def addproduct(request):
         return render(request, 'addproduct.html', {'type': types})
 
 
-def addcustomer(request):
-    if request.method == 'POST':
-        customer_name = request.POST['customer_name']
-        phone = request.POST['phone']
-        purchase_date = request.POST['purchase_date']
-
-        if Customer.objects.filter(customer_name=customer_name, phone=phone).exists():
-            return render(request, 'addcustomers.html', {'msg': 'Customer already exists.'})
-        else:
-            customer = Customer(customer_name=customer_name, phone=phone, purchase_date=purchase_date)
-            customer.save()
-            return render(request, 'addcustomers.html', {'msg': 'Customer Added'})
-    else:
-        return render(request, 'addcustomers.html')
+from django.shortcuts import render, get_object_or_404, redirect
+from django.db import IntegrityError
+from .models import Product, Billing
+import uuid
+from datetime import datetime
 
 def billing(request):
     if request.method == 'POST':
@@ -105,7 +96,6 @@ def billing(request):
                     'products': Product.objects.all(),
                     'cart': cart,
                     'total_price': round_to_two_decimal_places(sum(item['discounted_price'] * item['quantity'] for item in cart.values())),
-                    'customers': Customer.objects.all(),
                 })
 
             try:
@@ -121,7 +111,6 @@ def billing(request):
                         'products': Product.objects.all(),
                         'cart': cart,
                         'total_price': round_to_two_decimal_places(sum(item['discounted_price'] * item['quantity'] for item in cart.values())),
-                        'customers': Customer.objects.all(),
                     })
 
                 discounted_price = round_to_two_decimal_places(float(product.price) * (1 - (float(product.discount) / 100)))
@@ -147,8 +136,9 @@ def billing(request):
             request.session['cart'] = cart
 
         elif 'submit_bill' in request.POST:
-            customer_id = request.POST.get('customer_name')
-            customer = get_object_or_404(Customer, pk=customer_id)
+            customer_name = request.POST.get('customer_name')
+            customer_address = request.POST.get('customer_address')
+            customer_phone = request.POST.get('customer_phone')
             payment_method = request.POST.get('payment_method')
             cart = request.session.get('cart', {})
             sale_number = str(uuid.uuid4())
@@ -164,7 +154,6 @@ def billing(request):
                             'cart': cart,
                             'total_price': round_to_two_decimal_places(sum(item['discounted_price'] * item['quantity'] for item in cart.values())),
                             'error_message': error_message,
-                            'customers': Customer.objects.all(),
                         })
 
                     Billing.objects.create(
@@ -172,7 +161,11 @@ def billing(request):
                         product_id=product,
                         quantity=item['quantity'],
                         price=item['discounted_price'],
-                        purchasetime=purchasetime
+                        purchasetime=purchasetime,
+                        customer_name=customer_name,
+                        customer_address=customer_address,
+                        customer_phone=customer_phone,
+                        payment_method=payment_method
                     )
                     product.quantity -= item['quantity']
                     product.save()
@@ -181,7 +174,7 @@ def billing(request):
                     sale_number=sale_number,
                     cart=cart,
                     purchasetime=purchasetime,
-                    customer_name=customer.customer_name,
+                    customer_name=customer_name,
                     payment_method=payment_method
                 )
 
@@ -196,7 +189,6 @@ def billing(request):
                     'cart': cart,
                     'total_price': round_to_two_decimal_places(sum(item['discounted_price'] * item['quantity'] for item in cart.values())),
                     'error_message': error_message,
-                    'customers': Customer.objects.all(),
                 })
 
         elif 'create_new_transaction' in request.POST:
@@ -211,7 +203,6 @@ def billing(request):
         'products': Product.objects.all(),
         'cart': cart,
         'total_price': round_to_two_decimal_places(total_price),
-        'customers': Customer.objects.all(),
     })
 
 
@@ -235,11 +226,6 @@ def generate_pdf_bill(sale_number, cart, purchasetime, customer_name, payment_me
     Left_style = ParagraphStyle(name='LeftStyle', alignment=0, leftIndent=.01)
 
 
-    #logo = Image('C:/Users/acer/Desktop/billing/myenv/Scripts/billingsystemapp/static/image/bill.png', width=3 * inch, height=3 * inch,hAlign='RIGHT')  # Adjust size as needed
-    #elements.append(logo)
-    #elements.append(Spacer(1, 12))
-
-
     # Add company name
     company_name = "WA Enterprise"
     company_title = Paragraph(company_name, title_style)
@@ -249,13 +235,6 @@ def generate_pdf_bill(sale_number, cart, purchasetime, customer_name, payment_me
     elements.append(address)
     elements.append(Spacer(1, 10))
     
-    
-    #elements.append(Paragraph("Phone:9633477499", phone_style))
-    #elements.append(Paragraph("Email:waenterprise@gmail.com", phone_style))
-    #elements.append(Paragraph("Website:waenterprise.com", phone_style))
-    #elements.append(Paragraph("Pincode:695305",normal_style)) 
-    #elements.append(Paragraph("Address:Near Attingal KSRTC bus stand,Attingal,Trivandrum,Kerala.", normal_style))
-
 
     data = [
         [
@@ -408,27 +387,6 @@ def product_delete(request, product_id):
         product.delete()
         return redirect('product')
     return render(request, 'product_delete.html', {'product': product})
-
-def update_customer(request, customer_id):
-    customer = get_object_or_404(Customer, pk=customer_id)
-    if request.method == 'POST':
-        customer.customer_name = request.POST.get('customer_name')
-        customer.phone = request.POST.get('phone')
-        customer.purchase_date = request.POST.get('purchase_date')
-        customer.save()
-        return redirect('customers')
-    return render(request, 'customer_update.html', {'customer': customer})
-
-def delete_customer(request, customer_id):
-    customer = get_object_or_404(Customer, pk=customer_id)
-    if request.method == 'POST':
-        customer.delete()
-        return redirect('customers')
-    return render(request, 'customer_delete.html', {'customer': customer})
-
-def customer_list(request):
-    customers = Customer.objects.all()
-    return render(request, 'customers.html', {'customers': customers})
 
 def category_list(request):
     categories = Category.objects.all()
@@ -645,7 +603,6 @@ def profit_loss_today(request):
     }
 
     return render(request, 'profit_loss.html', context)
-
 
 
 

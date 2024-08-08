@@ -103,16 +103,10 @@
                         </li>
                     {% endif %}
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/addcustomer/' %}active{% endif %}" href="{% url 'addcustomer' %}">Add Customer</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link {% if request.path == '/billing/' %}active{% endif %}" href="{% url 'billing' %}">Billing</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.path == '/product/' %}active{% endif %}" href="{% url 'product' %}">Products</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/customers/' %}active{% endif %}" href="{% url 'customers' %}">Customers</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav ml-auto">

@@ -56,14 +56,6 @@ class Product(models.Model):
             self.save()
 
 
-class Customer(models.Model):
-    customer_id = models.AutoField(primary_key=True)
-    customer_name = models.CharField(max_length=200)
-    phone = models.CharField(max_length=15)
-    purchase_date = models.DateField()
-
-    def __str__(self):
-        return str(self.customer_name)
 
 class Sales(models.Model):
     sales_id = models.AutoField(primary_key=True)
@@ -82,13 +74,17 @@ class Billing(models.Model):
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     purchasetime = models.DateTimeField(null=True)
+    customer_name = models.CharField(max_length=200,null=True)
+    customer_address = models.CharField(max_length=200,null=True)
+    customer_phone = models.PositiveIntegerField(null=True)
+    payment_method =models.CharField(max_length=200,null=True)
 
     class Meta:
         unique_together = ('sale_number', 'product_id')
     def __str__(self):
         return str(self.sale_number)
 
-class stock(models.Model):
+class stock(models.Model): 
     stock_id = models.AutoField(primary_key=True)
     product_name = models.ForeignKey(Product, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
