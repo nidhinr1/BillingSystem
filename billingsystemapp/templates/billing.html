@@ -175,10 +175,10 @@
             <thead>
             <tr>
                 <th>Product Name</th>
-                <th>Price</th>
-                <th>Discounted Price</th>
+                <th>Price(₹)</th>
+                <th>Discounted Price(₹)</th>
                 <th>Quantity</th>
-                <th>Total</th>
+                <th>Total(₹)</th>
                 <th>Action</th>
             </tr>
             </thead>
@@ -186,10 +186,10 @@
                 {% for product_id, item in cart.items %}
                 <tr>
                     <td>{{ item.name }}</td>
-                    <td><span class="price-label">Rs</span>{{ item.original_price }}</td>
-                    <td><span class="price-label">Rs</span>{{ item.discounted_price }}</td>
+                    <td><span class="price-label"></span>{{ item.original_price }}</td>
+                    <td><span class="price-label"></span>{{ item.discounted_price }}</td>
                     <td>{{ item.quantity }}</td>
-                    <td><span class="price-label">Rs</span>{{ item.discounted_price|multiply:item.quantity }}</td>
+                    <td><span class="price-label"></span>{{ item.discounted_price|multiply:item.quantity }}</td>
                     <td>
                         <form method="post" class="form-inline">
                             {% csrf_token %}
@@ -206,22 +206,22 @@
             {% csrf_token %}
             <div>
                 <label for="customer_name">Customer Name:</label>
-                <input type="text" id="customer_name" name="customer_name" required>
+                <input type="text" id="customer_name" name="customer_name" >
             </div>
             <br>
             <div>
                 <label for="customer_address">Customer Address:</label>
-                <input type="text" id="customer_address" name="customer_address" required>
+                <input type="text" id="customer_address" name="customer_address">
             </div>
             <br>
             <div>
                 <label for="customer_phone">Customer Phone:</label>
-                <input type="tel" id="customer_phone" name="customer_phone" required pattern="\d{10}" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
+                <input type="tel" id="customer_phone" name="customer_phone" pattern="\d{10}" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
             </div>            
             <br>
             <div>
                 <label for="payment_method">Payment Method:</label>
-                <select id="payment_method" name="payment_method" required>
+                <select id="payment_method" name="payment_method">
                     <option value="Cash">Cash</option>
                     <option value="Credit Card">Credit Card</option>
                     <option value="Debit Card">Debit Card</option>
@@ -229,7 +229,7 @@
                 </select>
             </div>            
             <br>
-            <h3 style="padding-left:500px">Total Price: <span class="price-label">Rs</span>{{ total_price }}</h3>
+            <h3 style="padding-left:500px">Total Price: <span class="price-label">₹</span>{{ total_price }}</h3>
             
             <div class="form-container">
                 <button type="submit" name="submit_bill" class="btn btn-success">Submit Bill</button>
