@@ -72,9 +72,6 @@
         .btn-success {
             margin-top: 20px;
         }
-        .form-container {
-            margin-bottom: 20px;
-        }
         .btn-secondary {
             margin-left: 10px;
             margin-top: 20px;
@@ -88,6 +85,76 @@
             display: block;
             margin-bottom: 10px;
         }
+        /* General Form Container */
+.form-container {
+    width: 100%;
+    max-width: 800px; /* Adjust as needed */
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 1px solid #ddd; /* Optional border for the form */
+    border-radius: 8px; /* Optional rounded corners */
+    background-color: #f9f9f9; /* Optional background color */
+}
+
+/* Style for Form Groups */
+.form-group {
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between; /* Space between label and input */
+    align-items: center;
+}
+
+.form-group label {
+    width: 30%; /* Adjust width as needed */
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group select {
+    width: 65%; /* Adjust width as needed */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Style for Total Price */
+.total-price {
+    text-align: right; /* Right-align the total price */
+    margin-top: 20px;
+}
+
+/* Button Container */
+.button-container {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: 10px; /* Space between buttons */
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-success {
+    background-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
     </style>
 </head>
 <body>
@@ -169,6 +236,7 @@
                     </div>
                 </div>
             </form>
+            <p style="color:red;">{{msg}}</p>
         </div>
         <h2>Cart</h2>
         <table class="table table-bordered">
@@ -202,24 +270,21 @@
             </tbody>
         </table> 
         <h2>Customer and Payment details:</h2>
-        <form method="POST" action="{% url 'billing' %}" id="billingForm">
+        <form method="POST" action="{% url 'billing' %}" id="billingForm" class="form-container">
             {% csrf_token %}
-            <div>
+            <div class="form-group">
                 <label for="customer_name">Customer Name:</label>
-                <input type="text" id="customer_name" name="customer_name" >
+                <input type="text" id="customer_name" name="customer_name">
             </div>
-            <br>
-            <div>
+            <div class="form-group">
                 <label for="customer_address">Customer Address:</label>
                 <input type="text" id="customer_address" name="customer_address">
             </div>
-            <br>
-            <div>
+            <div class="form-group">
                 <label for="customer_phone">Customer Phone:</label>
                 <input type="tel" id="customer_phone" name="customer_phone" pattern="\d{10}" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
-            </div>            
-            <br>
-            <div>
+            </div>
+            <div class="form-group">
                 <label for="payment_method">Payment Method:</label>
                 <select id="payment_method" name="payment_method">
                     <option value="Cash">Cash</option>
@@ -227,15 +292,14 @@
                     <option value="Debit Card">Debit Card</option>
                     <option value="UPI">UPI</option>
                 </select>
-            </div>            
-            <br>
-            <h3 style="padding-left:500px">Total Price: <span class="price-label">₹</span>{{ total_price }}</h3>
-            
-            <div class="form-container">
+            </div>
+            <h3 class="total-price">Total Price: <span class="price-label">₹</span>{{ total_price }}</h3>
+            <div class="button-container">
                 <button type="submit" name="submit_bill" class="btn btn-success">Submit Bill</button>
                 <button type="submit" name="create_new_transaction" class="btn btn-secondary">New Transaction</button>
             </div>
         </form>
+        
         
     </div>
 

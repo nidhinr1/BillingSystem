@@ -221,13 +221,13 @@ def generate_pdf_bill(sale_number, cart, purchasetime, customer_name, payment_me
     Left_style = ParagraphStyle(name='LeftStyle', alignment=0, leftIndent=.01)
     details_style = ParagraphStyle(name='DetailsStyle', fontSize=12, alignment=0)
 
-    logo_path = r"D:\myproject\myenv\Scripts\billingsystemproject\billingsystemapp\templates\static\png2.png"  # Adjust path as per your project structure
+    logo_path = r"C:\Users\acer\Desktop\Project\myenv\Scripts\billingsystemproject\billingsystemapp\templates\static\smartstore.png"  # Adjust path as per your project structure
     logo_width = 130  # Adjust the width as needed
     logo_height = 80
     logo = Image(logo_path, width=logo_width, height=logo_height)
 
     # Add company name and address
-    company_name = "<font color='#1d2b64'>W A ENTERPRISE</font>"
+    company_name = "<font color='#1d2b64'>Smart Store</font>"
     company_title = Paragraph(company_name, title_style)
     address = Paragraph("Your trusted destination for cutting-edge electronics and unbeatable deals.", add_style)
 
@@ -256,7 +256,7 @@ def generate_pdf_bill(sale_number, cart, purchasetime, customer_name, payment_me
             
             Paragraph("Address: Near Attingal KSRTC bus stand, Attingal, Trivandrum, Kerala, Pincode: 695305.  GstIN:08AALCR2857A1ZD", normal_style),
             Spacer(1, 14),  # Spacer to push the next item to the right
-            Paragraph("Phone: 9633477499 Email:waenterprise@gmail.com  Website:waenterprise.com"  , normal_style),
+            Paragraph("Phone: 9633477499 Email:smartstore@gmail.com  Website:smartstore.com"  , normal_style),
 
         ]
     ]
@@ -276,71 +276,38 @@ def generate_pdf_bill(sale_number, cart, purchasetime, customer_name, payment_me
     elements.append(main_title)
     elements.append(Spacer(1, 20))
 
-    #elements.append(Spacer(1, 14))
-    #elements.append(Paragraph(f"Purchase Time: {purchasetime.strftime('%Y-%m-%d %H:%M:%S')}",  details_style))
-    #elements.append(Paragraph(f"Customer Name: {customer_name}",  details_style))
-    #elements.append(Paragraph(f"Customer Name: {customer_name}",  details_style))
-    #elements.append(Paragraph(f"Customer Name: {customer_name}",  details_style))
-    #elements.append(Paragraph(f"Payment Method: {payment_method}",  details_style))
-    #elements.append(Spacer(1, 14))
+    elements.append(Spacer(1, 14))
+    elements.append(Paragraph(f"Purchase Time: {purchasetime.strftime('%Y-%m-%d %H:%M:%S')}",  details_style))
+    elements.append(Paragraph(f"Customer Name: {customer_name}",  details_style))
+    elements.append(Paragraph(f"Customer Address: {customer_address}",  details_style))
+    elements.append(Paragraph(f"Customer Phone: {customer_phone}",  details_style))
+    elements.append(Paragraph(f"Payment Method: {payment_method}",  details_style))
+    elements.append(Spacer(1, 14))
 
-    details_data = [
-        [Paragraph(f"Purchase Time:", normal_style), Paragraph(f"{purchasetime.strftime('%Y-%m-%d %H:%M:%S')}", normal_style)],
-        [Paragraph(f"Customer Name:", normal_style), Paragraph(f"{customer_name}", normal_style)],
-        [Paragraph(f"Customer Phone:", normal_style), Paragraph(f"{customer_address}", normal_style)],
-        [Paragraph(f"Customer Address:", normal_style), Paragraph(f"{customer_phone}", normal_style)],
-        [Paragraph(f"Payment Method:", normal_style), Paragraph(f"{payment_method}", normal_style)],
-    ]
-    
-    table = Table(details_data, colWidths=[100, 120])  # Adjust column widths as needed
-    table.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (0, -1), 'LEFT'),  # Align the left column to the left
-        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),  # Align the right column to the right
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # Vertical alignment in the middle
-        ('BOX', (0, 0), (-1, -1), 0.5, colors.white),
-    ]))
-    details_style = ParagraphStyle(name='DetailsStyle', fontSize=10, alignment=0)
-    elements.append(table)
-    elements.append(Spacer(1, 7))
-
-
-    elements.append(Spacer(1, 10))
     # Table data
     data = [
-        ["Sr.No","Product Name", "Qty", "Rate", "Disc.Rate", "Total"]
+        ["Sr.No","Product Name", "Qty", "Rate(Rs)", "Disc.Rate(Rs)", "Total(Rs)"]
     ]
 
     serial_number = 1
-
+    total_quantity = 0
     for item in cart.values():
         total_price = item['discounted_price'] * item['quantity']
-        data.append([serial_number, item['name'], item['quantity'], f"Rs {item['original_price']}", 
-                     f"Rs {item['discounted_price']}", f"Rs {total_price}"])
+        total_quantity += item['quantity']
+        data.append([serial_number, item['name'], item['quantity'], f" {item['original_price']}", 
+                     f" {item['discounted_price']}", f" {total_price}"])
         serial_number += 1 
 
-    #final_total_price = sum(item['discounted_price'] * item['quantity'] for item in cart.values())
-    #data.append([])
-    #data.append(["", "", "", "Total:", f"Rs {final_total_price}"])
-
-    #table = Table(data, colWidths=[0.5 * inch,3.40 * inch, 0.75 * inch, 1 * inch, 1 * inch, 1 * inch])
-
-    #table.setStyle(TableStyle([
-        #('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        #('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        #('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        #('TOPPADDING', (0, 0), (-1, -1), 12),  # Increase height of each row
-        #('GRID', (0, 0), (-1, -1), 1, colors.black),
-        #('SPAN', (-2, -1), (-2, -1)),  # Span the "Final Amount" label
-        #('SPAN', (-1, -1), (-1, -1)),  # Span the "Final Amount" value
-        #('ALIGN', (-2, -1), (-2, -1), 'RIGHT'),  # Align the final amount to the right
-    #]))
 
     subtotal = sum(item['discounted_price'] * item['quantity'] for item in cart.values())
     tax = subtotal * 0.18  # Assuming an 18% tax rate
+    tax=round(tax,2)
+    subtotal=round(subtotal,2)
     final_total = subtotal + tax
+    final_total = round(final_total,2)
 
 # Add rows for Total, Tax, and Final Amount
-    data.append(["", "", "", "", "Subtotal:", f" {subtotal}"])
+    data.append(["", "", total_quantity, "", "", f" {subtotal}"])
     
 # Create the table with appropriate column widths
     table = Table(data, colWidths=[0.5 * inch, 3.40 * inch, 0.75 * inch, 1 * inch, 1 * inch, 1 * inch])
@@ -360,6 +327,7 @@ def generate_pdf_bill(sale_number, cart, purchasetime, customer_name, payment_me
 
     summary_data = [
     ["Tax (18%):", f"Rs {tax}"],
+    ["Subtotal:", f"Rs {subtotal}"],
     ["Final Amount:", f"Rs {final_total}"],
     ]
 
@@ -418,6 +386,7 @@ def generate_pdf_bill(sale_number, cart, purchasetime, customer_name, payment_me
               onLaterPages=draw_border)
 
     return response
+
 
 
 def product_list(request):
