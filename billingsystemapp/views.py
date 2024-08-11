@@ -177,6 +177,7 @@ def billing(request):
                 request.session['cart'] = {}
                 request.session['sale_number'] = None
                 return response
+            
 
             except IntegrityError:
                 error_message = "You cannot add the same product twice in the same bill."
@@ -729,6 +730,5 @@ def profit_loss_today(request):
     }
 
     return render(request, 'profit_loss.html', context)
-
 
 

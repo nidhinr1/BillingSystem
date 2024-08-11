@@ -168,7 +168,9 @@
                     <th>Quantity</th>
                     <th>Category</th>
                     <th>Manufacturing Date</th>
+                    {% if user.is_superuser %}
                     <th>Actions</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -181,12 +183,14 @@
                     <td>{{ product.quantity }}</td>
                     <td>{{ product.category.name }}</td>
                     <td>{{ product.manufacturingdate }}</td>
+                    {% if user.is_superuser %}
                     <td>
                         {% if product.manufacturingdate > sixmonths %}
                         <a class="btn btn-sm btn-warning" href="{% url 'product_update' product.product_id %}">Update</a>
                         {% endif %}
-                        <a class="btn btn-sm btn-danger" href="{% url 'product_delete' product.product_id %}">Delete</a>
+                        <a class="btn btn-sm btn-danger" href="{% url 'product_delete' product.product_id %}">Delete</a>   
                     </td>
+                    {% endif %}
                 </tr>
                 {% empty %}
                 <tr>
