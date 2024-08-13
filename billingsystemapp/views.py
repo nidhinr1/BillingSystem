@@ -224,7 +224,7 @@ def generate_pdf_bill(sale_number, cart, purchasetime, customer_name, payment_me
     Left_style = ParagraphStyle(name='LeftStyle', alignment=0, leftIndent=.01)
     details_style = ParagraphStyle(name='DetailsStyle', fontSize=12, alignment=0)
 
-    logo_path = r"D:\myproject\myenv\Scripts\billingsystemproject\billingsystemapp\templates\static\png2.png"  # Adjust path as per your project structure
+    logo_path = r"C:\Users\acer\Desktop\project\myenv\Scripts\billingsystemproject\billingsystemapp\templates\static\smartstore.png"# Adjust path as per your project structure
     logo_width = 130  # Adjust the width as needed
     logo_height = 80
     logo = Image(logo_path, width=logo_width, height=logo_height)
@@ -246,7 +246,7 @@ def generate_pdf_bill(sale_number, cart, purchasetime, customer_name, payment_me
 
 
     # Add company name and address
-    company_name = "W A ENTERPRISE "
+    company_name = "Smart Store"
     company_title = Paragraph(company_name, company_title_style)
     address = Paragraph("Your trusted destination for cutting-edge electronics and unbeatable deals.", add_style)
 
@@ -276,7 +276,7 @@ def generate_pdf_bill(sale_number, cart, purchasetime, customer_name, payment_me
             
             Paragraph("Address: Near Attingal KSRTC bus stand, Attingal, Trivandrum, Kerala, Pincode: 695305.  GstIN:08AALCR2857A1ZD", normal_style),
             Spacer(1, 14),  # Spacer to push the next item to the right
-            Paragraph("Phone: 9633477499 Email:waenterprise@gmail.com  Website:waenterprise.com"  , normal_style),
+            Paragraph("Phone: 9633477499 Email:smartstore@gmail.com  Website:smartstore.com"  , normal_style),
 
         ]
     ]
@@ -360,13 +360,19 @@ def generate_pdf_bill(sale_number, cart, purchasetime, customer_name, payment_me
 
 # Set the table style
     table.setStyle(TableStyle([
-    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-    ('TOPPADDING', (0, 0), (-1, -1), 12),  # Increase height of each row
-    ('GRID', (0, 0), (-1, -1), 1, colors.black),
-    ]))
-
+    ('BOX', (0, 0), (-1, -1), 1, colors.black),            # Outer border for the whole table
+    ('LINEBEFORE', (1, 0), (-1, -1), 1, colors.black),     # Solid vertical lines between columns
+    ('LINEAFTER', (0, 0), (-1, -1), 1, colors.black),      # Solid vertical line on the rightmost side
+    ('LINEBELOW', (0, 0), (-1, 0), 1, colors.black),       # Solid horizontal line under the header row
+    ('LINEABOVE', (0, -1), (-1, -1), 1, colors.black),      # Solid horizontal line above the last row
+    ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),           # Bold font for the header row
+    ('FONT', (0, 1), (-1, -2), 'Helvetica'),               # Normal font for the product rows
+    ('FONT', (0, -1), (-1, -1), 'Helvetica-Bold'),         # Bold font for the total row
+    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),                 # Center align all text
+    # Optional: Set padding to improve the table's appearance
+    ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+    ('TOPPADDING', (0, 0), (-1, -1), 12),
+]))
     elements.append(table)
 
     elements.append(Spacer(1, 20))
@@ -374,8 +380,8 @@ def generate_pdf_bill(sale_number, cart, purchasetime, customer_name, payment_me
     elements.append(Spacer(spacer_width, 0))
 
     summary_data = [
-    ["Tax (18%):",f"Rs {tax}"],
     ["Subtotal :",f"Rs {subtotal}"],
+    ["Tax (18%):",f"Rs {tax}"],
     ["Final Amount:",f"Rs {final_total}"],
 ]
 

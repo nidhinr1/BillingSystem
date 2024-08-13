@@ -257,7 +257,7 @@
                     <td><span class="price-label"></span>{{ item.original_price }}</td>
                     <td><span class="price-label"></span>{{ item.discounted_price }}</td>
                     <td>{{ item.quantity }}</td>
-                    <td><span class="price-label"></span>{{ item.discounted_price|multiply:item.quantity }}</td>
+                    <td><span class="price-label"></span>{{ item.discounted_price|multiply:item.quantity|floatformat:2 }}</td>
                     <td>
                         <form method="post" class="form-inline">
                             {% csrf_token %}
